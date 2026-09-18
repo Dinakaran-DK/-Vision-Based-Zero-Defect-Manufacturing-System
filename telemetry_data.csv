@@ -1,0 +1,121 @@
+image_id,shift,machine_temp,vibration,humidity,has_defect,defect_type
+product_0000.jpg,Evening,94.1,2.28,30.3,1,Thermal Scratch
+product_0001.jpg,Night,69.2,3.1,68.8,1,Vibration Chatter
+product_0002.jpg,Night,83.5,3.06,54.9,0,None
+product_0003.jpg,Evening,73.5,2.34,78.7,1,Surface Crack
+product_0004.jpg,Night,62.0,3.53,49.4,0,None
+product_0005.jpg,Evening,73.6,4.09,37.7,0,None
+product_0006.jpg,Morning,64.3,4.08,33.9,1,Vibration Chatter
+product_0007.jpg,Evening,74.2,2.33,78.2,1,Surface Crack
+product_0008.jpg,Evening,75.6,4.22,39.7,0,None
+product_0009.jpg,Morning,93.6,1.16,49.4,0,None
+product_0010.jpg,Morning,61.3,3.81,62.2,1,Vibration Chatter
+product_0011.jpg,Morning,77.3,3.31,68.2,1,Vibration Chatter
+product_0012.jpg,Night,90.6,1.75,36.1,1,Thermal Scratch
+product_0013.jpg,Evening,84.8,3.33,63.0,1,Thermal Scratch
+product_0014.jpg,Night,91.9,3.08,39.1,1,Thermal Scratch
+product_0015.jpg,Morning,68.3,4.2,33.2,1,Vibration Chatter
+product_0016.jpg,Night,76.7,4.26,74.9,0,None
+product_0017.jpg,Morning,93.9,1.35,78.1,1,Thermal Scratch
+product_0018.jpg,Evening,92.8,1.29,44.3,0,None
+product_0019.jpg,Night,78.1,2.97,77.4,1,Thermal Scratch
+product_0020.jpg,Evening,65.9,0.6,56.6,1,Surface Crack
+product_0021.jpg,Morning,92.4,3.01,78.4,1,Thermal Scratch
+product_0022.jpg,Evening,77.1,4.2,64.5,1,Vibration Chatter
+product_0023.jpg,Night,88.6,0.69,53.1,1,Thermal Scratch
+product_0024.jpg,Evening,79.5,2.41,63.3,1,Thermal Scratch
+product_0025.jpg,Night,65.7,3.04,34.7,1,Vibration Chatter
+product_0026.jpg,Evening,93.7,1.19,48.1,1,Thermal Scratch
+product_0027.jpg,Evening,73.1,1.57,63.2,1,Surface Crack
+product_0028.jpg,Night,71.4,2.72,42.6,1,Surface Crack
+product_0029.jpg,Night,65.7,1.83,42.7,1,Surface Crack
+product_0030.jpg,Night,84.2,1.25,76.5,0,None
+product_0031.jpg,Evening,77.4,1.56,69.7,1,Surface Crack
+product_0032.jpg,Night,69.6,3.88,78.1,1,Vibration Chatter
+product_0033.jpg,Evening,81.4,3.57,75.4,1,Thermal Scratch
+product_0034.jpg,Morning,82.2,3.23,68.7,0,None
+product_0035.jpg,Evening,89.6,4.45,54.5,0,None
+product_0036.jpg,Night,60.9,1.84,39.6,1,Surface Crack
+product_0037.jpg,Evening,60.6,4.45,36.8,1,Vibration Chatter
+product_0038.jpg,Morning,94.2,1.67,30.5,0,None
+product_0039.jpg,Morning,61.8,4.16,47.9,1,Vibration Chatter
+product_0040.jpg,Night,87.6,4.33,48.9,0,None
+product_0041.jpg,Evening,83.1,2.56,73.3,0,None
+product_0042.jpg,Morning,88.7,3.14,63.2,1,Thermal Scratch
+product_0043.jpg,Night,67.1,3.66,53.2,0,None
+product_0044.jpg,Night,74.6,2.14,72.5,1,Surface Crack
+product_0045.jpg,Morning,66.6,2.83,70.1,1,Vibration Chatter
+product_0046.jpg,Morning,63.4,2.26,71.1,0,None
+product_0047.jpg,Morning,66.4,1.63,63.4,1,Surface Crack
+product_0048.jpg,Night,80.8,0.86,59.0,0,None
+product_0049.jpg,Evening,71.0,2.6,76.1,1,Surface Crack
+product_0050.jpg,Morning,90.8,0.88,45.0,1,Thermal Scratch
+product_0051.jpg,Night,77.4,1.51,38.5,1,Surface Crack
+product_0052.jpg,Evening,80.2,1.28,48.8,1,Thermal Scratch
+product_0053.jpg,Night,78.8,2.47,64.9,1,Thermal Scratch
+product_0054.jpg,Evening,74.8,0.74,66.3,1,Surface Crack
+product_0055.jpg,Night,85.0,3.52,79.6,1,Thermal Scratch
+product_0056.jpg,Night,82.7,2.65,79.8,0,None
+product_0057.jpg,Morning,93.1,2.04,63.5,1,Thermal Scratch
+product_0058.jpg,Morning,83.1,1.21,60.6,1,Thermal Scratch
+product_0059.jpg,Evening,82.0,1.34,34.4,1,Thermal Scratch
+product_0060.jpg,Morning,74.2,3.65,31.7,1,Vibration Chatter
+product_0061.jpg,Morning,69.5,2.72,58.8,1,Surface Crack
+product_0062.jpg,Morning,71.4,3.13,62.1,1,Vibration Chatter
+product_0063.jpg,Morning,93.5,1.68,39.1,1,Thermal Scratch
+product_0064.jpg,Evening,77.4,2.7,57.6,1,Surface Crack
+product_0065.jpg,Evening,86.8,3.19,55.6,0,None
+product_0066.jpg,Evening,61.4,1.23,54.5,0,None
+product_0067.jpg,Night,72.3,2.04,57.3,0,None
+product_0068.jpg,Morning,81.0,4.35,39.0,1,Thermal Scratch
+product_0069.jpg,Morning,81.8,2.29,66.6,1,Thermal Scratch
+product_0070.jpg,Morning,67.8,2.34,45.0,1,Surface Crack
+product_0071.jpg,Morning,60.4,4.34,44.5,1,Vibration Chatter
+product_0072.jpg,Night,74.9,3.23,35.9,0,None
+product_0073.jpg,Morning,87.1,0.64,66.2,1,Thermal Scratch
+product_0074.jpg,Morning,81.6,0.81,38.6,0,None
+product_0075.jpg,Morning,77.3,4.08,55.1,1,Vibration Chatter
+product_0076.jpg,Night,78.2,4.32,56.6,1,Thermal Scratch
+product_0077.jpg,Night,71.9,3.86,68.1,0,None
+product_0078.jpg,Night,88.8,2.03,56.3,0,None
+product_0079.jpg,Evening,63.8,1.38,58.2,1,Surface Crack
+product_0080.jpg,Night,62.3,0.74,30.9,0,None
+product_0081.jpg,Evening,65.4,2.41,32.9,1,Surface Crack
+product_0082.jpg,Evening,80.6,2.03,39.0,1,Thermal Scratch
+product_0083.jpg,Morning,92.8,0.81,49.5,0,None
+product_0084.jpg,Night,82.7,0.6,52.1,0,None
+product_0085.jpg,Evening,88.5,1.34,34.4,1,Thermal Scratch
+product_0086.jpg,Morning,92.9,2.82,63.5,1,Thermal Scratch
+product_0087.jpg,Evening,90.5,4.32,34.4,1,Thermal Scratch
+product_0088.jpg,Night,74.9,2.95,37.2,0,None
+product_0089.jpg,Night,62.5,4.24,76.6,0,None
+product_0090.jpg,Night,88.1,1.03,54.4,0,None
+product_0091.jpg,Evening,72.8,1.04,66.3,0,None
+product_0092.jpg,Evening,84.0,1.65,52.1,1,Thermal Scratch
+product_0093.jpg,Night,82.3,2.58,51.1,1,Thermal Scratch
+product_0094.jpg,Night,76.4,2.73,68.7,0,None
+product_0095.jpg,Night,86.8,2.13,52.8,1,Thermal Scratch
+product_0096.jpg,Morning,93.0,2.77,38.2,1,Thermal Scratch
+product_0097.jpg,Evening,70.6,3.3,58.5,0,None
+product_0098.jpg,Evening,79.7,1.13,50.5,1,Thermal Scratch
+product_0099.jpg,Evening,66.4,2.64,54.5,0,None
+product_0100.jpg,Morning,68.9,0.79,78.6,1,Surface Crack
+product_0101.jpg,Morning,93.0,4.26,38.2,1,Thermal Scratch
+product_0102.jpg,Evening,85.3,1.37,38.3,0,None
+product_0103.jpg,Evening,71.6,2.67,45.3,1,Surface Crack
+product_0104.jpg,Morning,78.7,1.44,48.4,1,Thermal Scratch
+product_0105.jpg,Night,67.7,0.95,56.1,1,Surface Crack
+product_0106.jpg,Morning,77.7,2.46,45.3,0,None
+product_0107.jpg,Night,93.9,2.48,79.1,1,Thermal Scratch
+product_0108.jpg,Morning,62.8,2.04,46.1,1,Surface Crack
+product_0109.jpg,Morning,61.3,1.27,32.9,1,Surface Crack
+product_0110.jpg,Morning,84.0,4.05,52.4,1,Thermal Scratch
+product_0111.jpg,Night,71.3,4.3,65.3,0,None
+product_0112.jpg,Morning,90.6,1.92,43.9,1,Thermal Scratch
+product_0113.jpg,Evening,82.3,2.74,42.2,0,None
+product_0114.jpg,Evening,90.5,1.16,49.1,1,Thermal Scratch
+product_0115.jpg,Evening,83.0,1.02,74.2,1,Thermal Scratch
+product_0116.jpg,Evening,79.9,1.43,61.9,1,Thermal Scratch
+product_0117.jpg,Evening,83.9,2.21,77.5,1,Thermal Scratch
+product_0118.jpg,Morning,76.9,3.85,75.9,0,None
+product_0119.jpg,Evening,87.8,1.88,80.0,1,Thermal Scratch

@@ -1,0 +1,7 @@
+path: ./dataset
+train: images/train
+val: images/val
+names:
+  0: Thermal Scratch
+  1: Vibration Chatter
+  2: Surface Crack

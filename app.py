@@ -3,14 +3,14 @@ import cv2
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
-import plotly.express as px
 from datetime import datetime
+from streamlit_webrtc import webrtc_streamer, VideoTransformerBase, WebRtcMode, RTCConfiguration
 
 # -------------------------------------------------------------------
-# PAGE CONFIG & INDUSTRIAL LIGHT THEME
+# PAGE CONFIG & INDUSTRIAL DARK THEME
 # -------------------------------------------------------------------
 st.set_page_config(
-    page_title="SMART INSPECT | Industrial Light AI Engine",
+    page_title="SMART INSPECT | Factory AI Engine",
     page_icon="⚡",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -18,81 +18,101 @@ st.set_page_config(
 
 st.markdown("""
 <style>
-    /* Industrial Light Theme Setup */
     .stApp {
-        background-color: #f8fafc;
-        color: #0f172a;
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background-color: #0d1117;
+        color: #e6edf3;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     }
     [data-testid="stSidebar"] {
-        background-color: #ffffff;
-        border-right: 1px solid #e2e8f0;
+        background-color: #161b22;
+        border-right: 1px solid #30363d;
+    }
+    [data-testid="stSidebar"] * {
+        color: #c9d1d9 !important;
     }
     .top-header {
-        background-color: #ffffff;
-        padding: 15px 25px;
-        border-radius: 10px;
-        border: 1px solid #cbd5e1;
-        box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.05);
+        background-color: #161b22;
+        padding: 14px 24px;
+        border-radius: 8px;
+        border: 1px solid #30363d;
+        box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.3);
         display: flex;
         justify-content: space-between;
         align-items: center;
         margin-bottom: 20px;
-        color: #0f172a;
+        color: #c9d1d9;
     }
     .metric-box {
-        background-color: #ffffff;
-        border: 1px solid #cbd5e1;
+        background-color: #161b22;
+        border: 1px solid #30363d;
         border-radius: 8px;
         padding: 18px;
         text-align: center;
-        box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.03);
+        box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
     }
     .metric-title {
-        color: #64748b;
-        font-size: 13px;
+        color: #8b949e;
+        font-size: 12px;
         font-weight: 700;
         text-transform: uppercase;
+        letter-spacing: 0.5px;
     }
     .metric-num {
-        color: #0f172a;
+        color: #ffffff;
         font-size: 32px;
         font-weight: 800;
-        margin: 5px 0;
+        margin: 6px 0;
     }
     .badge-fail {
-        background-color: #dc2626;
+        background-color: #da3633;
         color: #ffffff;
         padding: 8px 16px;
         border-radius: 6px;
         font-weight: 700;
-        font-size: 16px;
+        font-size: 15px;
         display: inline-block;
+        border: 1px solid #f85149;
     }
     .badge-pass {
-        background-color: #16a34a;
+        background-color: #238636;
         color: #ffffff;
         padding: 8px 16px;
         border-radius: 6px;
         font-weight: 700;
-        font-size: 16px;
+        font-size: 15px;
         display: inline-block;
+        border: 1px solid #2ea043;
     }
 </style>
 """, unsafe_allow_html=True)
 
-# Session state initialization for dynamic history
 if "history_log" not in st.session_state:
     st.session_state.history_log = []
 
+# WebRTC ICE Server Configuration for Cloud Tunneling
+RTC_CONFIGURATION = RTCConfiguration(
+    {"iceServers": [{"urls": ["stun:stun.l.google.com:19302"]}]}
+)
+
 # -------------------------------------------------------------------
-# COMPREHENSIVE MULTI-SCALE PCB INSPECTION ENGINE
+# DETECTION ENGINE & HUMAN FILTER
 # -------------------------------------------------------------------
+def is_human_present(image):
+    hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+    lower_skin = np.array([0, 20, 70], dtype=np.uint8)
+    upper_skin = np.array([20, 255, 255], dtype=np.uint8)
+    skin_mask = cv2.inRange(hsv, lower_skin, upper_skin)
+    skin_ratio = np.sum(skin_mask > 0) / (image.shape[0] * image.shape[1])
+    return skin_ratio > 0.15
+
 def analyze_surface_topology(image, sensitivity=50):
-    """
-    Detects small cracks, surface scratches, and large burnt holes/voids.
-    Returns annotated frame, defect metadata, total area, severity, and grayscale map.
-    """
+    if is_human_present(image):
+        annotated = image.copy()
+        cv2.putText(annotated, "HUMAN DETECTED - INSPECTION PAUSED", (30, 50),
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2, cv2.LINE_AA)
+        gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        return annotated, [], 0.0, 0.0, gray
+
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     h, w = gray.shape
     annotated = image.copy()
@@ -101,229 +121,107 @@ def analyze_surface_topology(image, sensitivity=50):
     total_defect_area = 0.0
     occupied_mask = np.zeros((h, w), dtype=np.uint8)
 
-    # --- PHASE 1: LARGE BURNT HOLE & VOID EXTRACTION (HSV + OTSU) ---
+    # Burnt Holes Filter
     hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
-    
-    # Isolate dark charred/burnt regions
     lower_dark = np.array([0, 0, 0])
-    upper_dark = np.array([180, 255, 75])
+    upper_dark = np.array([180, 255, 30])
     dark_mask = cv2.inRange(hsv, lower_dark, upper_dark)
     
-    # Clean morphological noise
     kernel_large = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (11, 11))
     cleaned_dark = cv2.morphologyEx(dark_mask, cv2.MORPH_CLOSE, kernel_large)
-    
     contours_large, _ = cv2.findContours(cleaned_dark, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     
     for cnt in contours_large:
         area = cv2.contourArea(cnt)
-        if area > 450:  # Large burnt hole or blowout region
-            x, y, bw, bh = cv2.boundingRect(cnt)
+        x, y, bw, bh = cv2.boundingRect(cnt)
+        extent = float(area) / (bw * bh) if (bw * bh) > 0 else 0
+        
+        if area > 1200 and extent < 0.80:
             total_defect_area += area
-            
             cv2.drawContours(occupied_mask, [cnt], -1, 255, -1)
-            
-            defects.append({
-                "id": f"DEF-{len(defects)+1:02d}",
-                "type": "Burnt Hole / Major Void",
-                "area": int(area),
-                "box": (x, y, bw, bh)
-            })
-            
-            # Thick Red Box for Major Defects
+            defects.append({"id": f"DEF-{len(defects)+1:02d}", "type": "Burnt Hole / Major Void", "area": int(area), "box": (x, y, bw, bh)})
             cv2.rectangle(annotated, (x, y), (x + bw, y + bh), (0, 0, 220), 3)
-            
-            # Background Box for Readable Labeling
-            label = f"BURNT HOLE [{int(area)}px]"
-            (tw, th), _ = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, 0.55, 2)
-            cv2.rectangle(annotated, (x, max(0, y - 25)), (x + tw + 10, max(25, y)), (0, 0, 220), -1)
-            cv2.putText(annotated, label, (x + 5, max(18, y - 6)),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.55, (255, 255, 255), 2, cv2.LINE_AA)
 
-    # --- PHASE 2: MICRO-CRACKS & SCRATCHES (EXCLUDING HOLE AREA) ---
+    # Micro-cracks Filter
     k_size = max(3, int(sensitivity / 10) * 2 + 1)
     kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (k_size, k_size))
     tophat = cv2.morphologyEx(gray, cv2.MORPH_BLACKHAT, kernel)
     blur = cv2.GaussianBlur(tophat, (3, 3), 0)
-    _, thresh = cv2.threshold(blur, 20, 255, cv2.THRESH_BINARY)
-    
-    # Mask out regions already covered by large burnt holes
+    _, thresh = cv2.threshold(blur, 45, 255, cv2.THRESH_BINARY)
     thresh = cv2.bitwise_and(thresh, cv2.bitwise_not(occupied_mask))
     
     contours_small, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     
     for cnt in contours_small:
         area = cv2.contourArea(cnt)
-        if 80 < area < (h * w * 0.05):  # Filter out trivial noise pads
-            x, y, bw, bh = cv2.boundingRect(cnt)
+        x, y, bw, bh = cv2.boundingRect(cnt)
+        
+        if bh < 12 or bw < 6 or (bw > (w * 0.4)) or (bh > (h * 0.4)):
+            continue
+            
+        if 150 < area < (h * w * 0.03):
             aspect_ratio = float(bw) / bh if bh > 0 else 0
-            
-            defect_type = "Surface Scratch" if (aspect_ratio > 3.0 or aspect_ratio < 0.33) else "Micro-Crack"
-            
+            defect_type = "Surface Scratch" if (aspect_ratio > 3.5 or aspect_ratio < 0.28) else "Micro-Crack"
             total_defect_area += area
-            defects.append({
-                "id": f"DEF-{len(defects)+1:02d}",
-                "type": defect_type,
-                "area": int(area),
-                "box": (x, y, bw, bh)
-            })
-            
-            # Draw Yellow Box for minor anomalies
+            defects.append({"id": f"DEF-{len(defects)+1:02d}", "type": defect_type, "area": int(area), "box": (x, y, bw, bh)})
             cv2.rectangle(annotated, (x, y), (x + bw, y + bh), (0, 180, 255), 2)
-            
-            # Readable Label
-            lbl = f"{defect_type}"
-            (tw, th), _ = cv2.getTextSize(lbl, cv2.FONT_HERSHEY_SIMPLEX, 0.4, 1)
-            cv2.rectangle(annotated, (x, max(0, y - 18)), (x + tw + 6, max(18, y)), (0, 180, 255), -1)
-            cv2.putText(annotated, lbl, (x + 3, max(14, y - 4)),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.4, (0, 0, 0), 1, cv2.LINE_AA)
 
-    # Compute Overall Severity Score (0 to 100 Scale)
     severity_score = min(100.0, (total_defect_area / (h * w * 0.005)) * 100)
-    
     return annotated, defects, total_defect_area, severity_score, gray
 
 # -------------------------------------------------------------------
-# 3D TOPOGRAPHY GENERATOR
+# WEBRTC VIDEO PROCESSOR CLASS
 # -------------------------------------------------------------------
-def generate_3d_surface_plot(gray_img):
-    small_img = cv2.resize(gray_img, (80, 80))
-    fig = go.Figure(data=[go.Surface(z=small_img, colorscale='Viridis')])
-    fig.update_layout(
-        title="3D Component Depth Mesh",
-        autosize=True,
-        height=400,
-        margin=dict(l=10, r=10, b=10, t=40),
-        scene=dict(
-            xaxis=dict(visible=False),
-            yaxis=dict(visible=False),
-            zaxis=dict(title="Surface Depth")
-        ),
-        paper_bgcolor="rgba(0,0,0,0)",
-        plot_bgcolor="rgba(0,0,0,0)",
-        font=dict(color="#0f172a")
-    )
-    return fig
+class PCBVideoProcessor(VideoTransformerBase):
+    def __init__(self):
+        self.sensitivity = 50
+
+    def transform(self, frame):
+        img = frame.to_ndarray(format="bgr24")
+        annotated_img, _, _, _, _ = analyze_surface_topology(img, sensitivity=self.sensitivity)
+        return annotated_img
 
 # -------------------------------------------------------------------
-# SIDEBAR CONTROL PANEL
+# STREAMLIT UI LAYOUT
 # -------------------------------------------------------------------
 with st.sidebar:
     st.title("⚡ SMART INSPECT")
-    st.caption("Light-Theme Quality Engine")
-    st.markdown("---")
-    
     page = st.radio("Navigation View", ["Visual Workspace", "3D Surface Analytics", "Inspection Logs"])
-    
     st.markdown("---")
-    st.subheader("⚙️ Control Settings")
-    plant_line = st.selectbox("Line ID", ["Line 04 - Stamping & Milling", "Line 01 - SMT Assembly"])
-    operator_id = st.text_input("Operator Name", "Op. Dinakar")
-    reflow_temp = st.slider("Reflow Temperature (°C)", 40.0, 110.0, 84.0)
     sensitivity = st.slider("Crack Sensitivity", 10, 100, 50)
 
-# -------------------------------------------------------------------
-# TOP STATUS BANNER
-# -------------------------------------------------------------------
 st.markdown(f"""
 <div class="top-header">
-    <div><strong style="color:#2563eb;">📍 Plant Location:</strong> Detroit-01 &nbsp;|&nbsp; <span style="color:#64748b;">{plant_line}</span></div>
-    <div>🕒 {datetime.now().strftime('%H:%M:%S')} &nbsp;|&nbsp; 👤 <strong>{operator_id}</strong></div>
+    <div><strong style="color:#58a6ff;">📍 Cloud Engine Active</strong></div>
+    <div>🕒 {datetime.now().strftime('%H:%M:%S')}</div>
 </div>
 """, unsafe_allow_html=True)
 
-# -------------------------------------------------------------------
-# PAGE 1: VISUAL INSPECTION WORKSPACE
-# -------------------------------------------------------------------
 if page == "Visual Workspace":
     st.title("Visual Inspection Workspace")
-    st.caption("Multi-scale vision pipeline: Detects micro-cracks, scratches, and large burnt voids.")
-    
-    input_mode = st.radio("Select Source", ["Static Image Upload", "Live Camera Feed"], horizontal=True)
-    raw_frame = None
+    input_mode = st.radio("Select Source", ["Live WebRTC Stream", "Static Image Upload"], horizontal=True)
 
-    if input_mode == "Static Image Upload":
-        uploaded_file = st.file_uploader("Upload Manufactured Part Image", type=["jpg", "png", "jpeg", "webp"])
+    if input_mode == "Live WebRTC Stream":
+        webrtc_ctx = webrtc_streamer(
+            key="pcb-inspection",
+            mode=WebRtcMode.SENDRECV,
+            rtc_configuration=RTC_CONFIGURATION,
+            video_processor_factory=PCBVideoProcessor,
+            media_stream_constraints={"video": True, "audio": False},
+            async_processing=True,
+        )
+        if webrtc_ctx.video_processor:
+            webrtc_ctx.video_processor.sensitivity = sensitivity
+
+    else:
+        uploaded_file = st.file_uploader("Upload Component Image", type=["jpg", "png", "jpeg"])
         if uploaded_file:
             bytes_data = np.asarray(bytearray(uploaded_file.read()), dtype=np.uint8)
             raw_frame = cv2.imdecode(bytes_data, 1)
-    else:
-        run_cam = st.checkbox("Enable Live Camera Feed", value=True)
-        if run_cam:
-            cap = cv2.VideoCapture(0)
-            ret, frame = cap.read()
-            if ret:
-                raw_frame = frame
-            cap.release()
+            annotated_img, defects, total_area, severity, gray_img = analyze_surface_topology(raw_frame, sensitivity)
+            st.image(annotated_img, channels="BGR", use_container_width=True)
+            st.write(f"**Total Defects Detected:** {len(defects)}")
 
-    if raw_frame is not None:
-        annotated_img, defects, total_area, severity, gray_img = analyze_surface_topology(raw_frame, sensitivity)
-        
-        col1, col2 = st.columns([1.2, 0.8])
-        
-        with col1:
-            st.image(annotated_img, channels="BGR", use_container_width=True, caption="Multi-Scale Defect Detection Overlay")
-            
-        with col2:
-            st.markdown("### 📊 Diagnostic Results")
-            has_major_hole = any(d["type"] == "Burnt Hole / Major Void" for d in defects)
-            is_reject = len(defects) > 0 or reflow_temp > 78.0
-            
-            if is_reject:
-                st.markdown("<span class='badge-fail'>❌ STATUS: REJECT (Defect Detected)</span>", unsafe_allow_html=True)
-            else:
-                st.markdown("<span class='badge-pass'>✅ STATUS: PASS (Defect Free)</span>", unsafe_allow_html=True)
-                
-            st.markdown("<br>", unsafe_allow_html=True)
-            m1, m2 = st.columns(2)
-            with m1:
-                st.markdown(f"<div class='metric-box'><div class='metric-title'>Total Defects</div><div class='metric-num'>{len(defects)}</div></div>", unsafe_allow_html=True)
-            with m2:
-                st.markdown(f"<div class='metric-box'><div class='metric-title'>Severity Score</div><div class='metric-num'>{severity:.1f}</div></div>", unsafe_allow_html=True)
-                
-            if len(defects) > 0:
-                st.markdown("#### 📑 Itemized Defects")
-                df_defects = pd.DataFrame(defects)[["id", "type", "area"]]
-                df_defects.columns = ["ID", "Classification", "Area (px)"]
-                st.dataframe(df_defects, use_container_width=True)
-                
-                if st.button("Save Log Record"):
-                    st.session_state.history_log.append({
-                        "Timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                        "Defects Count": len(defects),
-                        "Primary Defect": defects[0]["type"],
-                        "Severity": f"{severity:.1f}",
-                        "Status": "REJECT" if is_reject else "PASS"
-                    })
-                    st.success("Log record saved.")
-
-            if has_major_hole:
-                st.error("🚨 **Critical Warning:** Burnt hole / severe electrical blowout detected on surface.")
-            elif reflow_temp > 78.0:
-                st.warning("⚠️ **Thermal Caution:** Reflow temperature elevated. Reduce zone heater temperature by 5°C.")
-
-# -------------------------------------------------------------------
-# PAGE 2: 3D TOPOGRAPHY
-# -------------------------------------------------------------------
-elif page == "3D Surface Analytics":
-    st.title("3D Topographical Surface View")
-    st.caption("3D mesh depth visualization for structural damage analysis.")
-    
-    uploaded_file = st.file_uploader("Upload Image for 3D Surface Processing", type=["jpg", "png", "jpeg"])
-    if uploaded_file:
-        bytes_data = np.asarray(bytearray(uploaded_file.read()), dtype=np.uint8)
-        img = cv2.imdecode(bytes_data, 1)
-        _, _, _, _, gray_img = analyze_surface_topology(img, sensitivity)
-        
-        fig = generate_3d_surface_plot(gray_img)
-        st.plotly_chart(fig, use_container_width=True)
-
-# -------------------------------------------------------------------
-# PAGE 3: LOGS
-# -------------------------------------------------------------------
-else:
+elif page == "Inspection Logs":
     st.title("Inspection Logs")
-    if len(st.session_state.history_log) > 0:
-        st.dataframe(pd.DataFrame(st.session_state.history_log), use_container_width=True)
-    else:
-        st.info("No records logged yet. Complete an inspection in the Visual Workspace and click 'Save Log Record'.")
+    st.info("Log dynamic storage ready.")
